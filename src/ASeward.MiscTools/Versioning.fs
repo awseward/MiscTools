@@ -77,3 +77,15 @@ module Versioning =
           match semVer.meta with
           | Some meta -> sprintf "%s+%s" str meta
           | None -> str
+
+  module AssemblyInfo =
+    open System.IO
+
+    let private _infoVersionRegex = Regex (@"AssemblyInformationalVersion\s*\(\s*""(?<attrVal>[^""]+)""\s*\)(?:\s*>)?\s*]\s*$", RegexOptions.Multiline)
+
+    let tryParseInfoVersion =
+      (Regex.tryMatch _infoVersionRegex)
+      >> Option.bind (Option.ofNamedCapture "attrVal")
+      >> Option.bind SemVer.tryParse
+
+    let tryReadInfoVersion = File.ReadAllText >> tryParseInfoVersion
