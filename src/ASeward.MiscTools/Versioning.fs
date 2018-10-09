@@ -51,7 +51,7 @@ module Versioning =
             minor = mtch |> Int32.ofNamedCapture  "minor"
             patch = mtch |> Int32.ofNamedCapture  "patch"
             pre   = mtch |> Option.ofNamedCapture "prerelease"
-            meta  = mtch |> Option.ofNamedCapture "meta" }
+            meta  = mtch |> Option.ofNamedCapture "metadata" }
       )
 
     let toString semVer =
