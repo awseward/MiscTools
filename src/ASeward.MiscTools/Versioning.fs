@@ -9,11 +9,9 @@ module Int32 =
 
 module Regex =
   let tryMatch (regex: Regex) input =
-    let m = regex.Match input
-    if not m.Success then
-      None
-    else
-      Some m
+    input
+    |> regex.Match
+    |> Option.someIf (fun m -> m.Success)
 
 module Versioning =
 
