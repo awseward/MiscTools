@@ -8,7 +8,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{D73EDD
 		..\paket.dependencies = ..\paket.dependencies
 	EndProjectSection
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MiscTools", "src/MiscTools/MiscTools.fsproj", "{25DE466F-F68C-455A-9723-6B98CA35CD1E}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ASeward.MiscTools", "src/ASeward.MiscTools/ASeward.MiscTools.fsproj", "{25DE466F-F68C-455A-9723-6B98CA35CD1E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
