@@ -25,21 +25,34 @@ module Versioning =
       meta  : string option }
 
   module SemVer =
-    let incrMajor semVer =
+    let incrMajor ({ major = major } as semVer) =
       { semVer with
-          major = semVer.major + 1
+          major = major + 1
           minor = 0
           patch = 0 }
-    let incrMinor semVer =
+
+    let incrMinor ({ minor = minor } as semVer) =
       { semVer with
-          minor = semVer.minor + 1
+          minor = minor + 1
           patch = 0 }
-    let incrPatch semVer =
-      { semVer with patch = semVer.patch + 1 }
+
+    let incrPatch ({ patch = patch } as semVer) =
+      { semVer with
+          patch = patch + 1 }
+
     let setPre pre semVer =
-      { semVer with pre = Option.ofString pre }
+      { semVer with
+          pre = Option.ofString pre }
+    let mapPre f ({ pre = pre } as semVer) =
+      { semVer with
+          pre = Option.map f pre }
+
     let setMeta meta semVer =
-      { semVer with meta = Option.ofString meta }
+      { semVer with
+          meta = Option.ofString meta }
+    let mapMeta f ({ meta = meta } as semVer) =
+      { semVer with
+          meta = Option.map f meta }
 
     let private _regex = Regex @"^(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(?:-(?<prerelease>[0-9A-Za-z-]+))?(?:\+(?<metadata>[0-9A-Za-z-]+))?"
     // capture boundary hints:    |___________|  |___________|  |___________|    |__________________________|       |________________________|
@@ -54,11 +67,7 @@ module Versioning =
             meta  = mtch |> Option.ofNamedCapture "metadata" }
       )
 
-    let toString semVer =
-      let
-        { major = major
-          minor = minor
-          patch = patch } = semVer
+    let toString ({ major = major; minor = minor; patch = patch } as semVer) =
       sprintf "%i.%i.%i" major minor patch
       |> fun str ->
           match semVer.pre with
