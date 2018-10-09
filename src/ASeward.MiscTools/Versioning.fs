@@ -1,17 +1,6 @@
 ﻿namespace ASeward.MiscTools
 
-open System
 open System.Text.RegularExpressions
-
-module Int32 =
-  let ofRegexGroup (group: Group) = Int32.Parse group.Value
-  let ofNamedCapture (name: string) (m: Match) = ofRegexGroup m.Groups.[name]
-
-module Regex =
-  let tryMatch (regex: Regex) input =
-    input
-    |> regex.Match
-    |> Option.someIf (fun m -> m.Success)
 
 module Versioning =
 
@@ -58,11 +47,11 @@ module Versioning =
     let tryParse =
       (Regex.tryMatch _regex)
       >> Option.map (fun mtch ->
-          { major = mtch |> Int32.ofNamedCapture  "major"
-            minor = mtch |> Int32.ofNamedCapture  "minor"
-            patch = mtch |> Int32.ofNamedCapture  "patch"
-            pre   = mtch |> Option.ofNamedCapture "prerelease"
-            meta  = mtch |> Option.ofNamedCapture "metadata" }
+          { major = mtch |> Regex.namedCaptureToInt    "major"
+            minor = mtch |> Regex.namedCaptureToInt    "minor"
+            patch = mtch |> Regex.namedCaptureToInt    "patch"
+            pre   = mtch |> Regex.namedCaptureToOption "prerelease"
+            meta  = mtch |> Regex.namedCaptureToOption "metadata" }
       )
 
     let toString ({ major = major; minor = minor; patch = patch } as semVer) =
@@ -93,7 +82,7 @@ module Versioning =
 
     let tryParseInfoVersion =
       (Regex.tryMatch _infoVersionRegex)
-      >> Option.bind (Option.ofNamedCapture "attrVal")
+      >> Option.bind (Regex.namedCaptureToOption "attrVal")
       >> Option.bind SemVer.tryParse
 
     let tryReadInfoVersion = File.ReadAllText >> tryParseInfoVersion
