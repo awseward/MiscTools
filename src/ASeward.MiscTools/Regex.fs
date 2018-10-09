@@ -1,9 +1,9 @@
 namespace ASeward.MiscTools
 
-open System
-open System.Text.RegularExpressions
-
 module Regex =
+  open System
+  open System.Text.RegularExpressions
+
   let tryMatch (regex: Regex) input =
     input
     |> regex.Match
