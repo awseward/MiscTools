@@ -52,7 +52,8 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Library1.fs" />
+    <Compile Include="Option.fs" />
+    <Compile Include="Versioning.fs" />
     <Content Include="paket.references" />
   </ItemGroup>
   <ItemGroup>
