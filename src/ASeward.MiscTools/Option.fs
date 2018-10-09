@@ -4,13 +4,13 @@ open System
 open System.Text.RegularExpressions
 
 module Option =
-  let ofString str =
-    if String.IsNullOrWhiteSpace str then None
-    else Some str
+  let someIf predicate a = if predicate a then (Some a) else None
+
+  let ofString = someIf (not << String.IsNullOrWhiteSpace)
 
   let ofRegexGroup (group: Group) =
     if group.Success then
-      Some (group.Value)
+      Some group.Value
     else
       None
   let ofNamedCapture (name: string) (m: Match) = ofRegexGroup m.Groups.[name]
