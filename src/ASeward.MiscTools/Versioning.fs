@@ -9,11 +9,9 @@ module Int32 =
 
 module Regex =
   let tryMatch (regex: Regex) input =
-    let m = regex.Match input
-    if not m.Success then
-      None
-    else
-      Some m
+    input
+    |> regex.Match
+    |> Option.someIf (fun m -> m.Success)
 
 module Versioning =
 
@@ -77,3 +75,25 @@ module Versioning =
           match semVer.meta with
           | Some meta -> sprintf "%s+%s" str meta
           | None -> str
+
+    let toSystemVersion { major = major; minor = minor; patch = patch } =
+      System.Version (
+        major    = major,
+        minor    = minor,
+        build    = patch,
+        revision = 0
+      )
+
+  module AssemblyInfo =
+    open System.IO
+
+    let private _versionRegex     = Regex (@"AssemblyVersion\s*\(\s*""(?<attrVal>[^""]+)""\s*\)(?:\s*>)?\s*]\s*$", RegexOptions.Multiline)
+    let private _fileVersionRegex = Regex (@"AssemblyFileVersion\s*\(\s*""(?<attrVal>[^""]+)""\s*\)(?:\s*>)?\s*]\s*$", RegexOptions.Multiline)
+    let private _infoVersionRegex = Regex (@"AssemblyInformationalVersion\s*\(\s*""(?<attrVal>[^""]+)""\s*\)(?:\s*>)?\s*]\s*$", RegexOptions.Multiline)
+
+    let tryParseInfoVersion =
+      (Regex.tryMatch _infoVersionRegex)
+      >> Option.bind (Option.ofNamedCapture "attrVal")
+      >> Option.bind SemVer.tryParse
+
+    let tryReadInfoVersion = File.ReadAllText >> tryParseInfoVersion
