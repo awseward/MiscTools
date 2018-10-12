@@ -1,39 +1,70 @@
 #r "./packages/FAKE/tools/FakeLib.dll"
-#r "./packages/FSharp.Version.Utils/lib/net45/FSharpVersionUtils.dll"
-#r "./packages/FSharp.FakeTargets/lib/net45/FSharp.FakeTargets.dll"
+#r "./packages/ASeward.MiscTools/lib/net471/ASeward.MiscTools.dll"
 
+open ASeward.MiscTools.Versioning
+open ASeward.MiscTools.ActivePatterns
 open Fake
+open System
+open System.IO
 
 let projects = !! "/**/*.fsproj"
+let assemblyInfos = ["src/ASeward.MiscTools/AssemblyInfo.fs"]
+
+module AsmInf = ASeward.MiscTools.Versioning.AssemblyInfo
+module AsmInfSemVer =
+  let private _writeAllText filePath contents = File.WriteAllText (filePath, contents)
+  let private _write filePath semVer =
+    filePath
+    |> File.ReadAllText
+    |> AsmInf.replaceAssemblyVersion semVer
+    |> AsmInf.replaceAssemblyFileVersion semVer
+    |> AsmInf.replaceAssemblyInformationalVersion semVer
+    |> _writeAllText filePath
+  let iterMap fn =
+    assemblyInfos
+    |> List.iter (fun filePath ->
+        filePath
+        |> AsmInf.tryReadInfoVersion
+        |> Option.map fn
+        |> Option.iter (_write filePath)
+    )
+
+let promptFor name =
+  (sprintf "Did not provide value for parameter '%s'. Please specify (default: ''): " name)
+  |> Console.Write
+  |> Console.ReadLine
+  |> fun str -> str.Trim ()
+
+Target "version:major" (fun _ -> AsmInfSemVer.iterMap SemVer.incrMajor)
+Target "version:minor" (fun _ -> AsmInfSemVer.iterMap SemVer.incrMinor)
+Target "version:patch" (fun _ -> AsmInfSemVer.iterMap SemVer.incrPatch)
+Target "version:pre" (fun _ ->
+  let map =
+    "pre"
+    |> getBuildParam
+    |> function
+        | NullOrWhiteSpace -> promptFor "pre"
+        | str -> str
+    |> fun pre -> SemVer.setPre pre
+
+  AsmInfSemVer.iterMap map
+)
+Target "version:meta" (fun _ ->
+  let map =
+    "meta"
+    |> getBuildParam
+    |> function
+        | NullOrWhiteSpace -> promptFor "meta"
+        | str -> str
+    |> fun meta -> SemVer.setMeta meta
+
+  AsmInfSemVer.iterMap map
+)
 
 Target "Build:Release" (fun _ ->
   projects
   |> MSBuildRelease null "Clean;Rebuild"
   |> Log "AppBuild-Output: "
-)
-
-Target "Package:NuGetFail" (fun _ ->
-  @"
-
-  Packaging with NuGet does not work. Please prefer Paket:* FAKE targets, or use paket.
-
-  Paket usage:
-    .paket/paket.exe pack .
-    .paket/paket.exe push --api-key <API_KEY> <NUPKG_FILE>
-
-  "
-  |> failwith
-)
-
-datNET.Targets.initialize (fun p ->
-  { p with
-      AccessKey             = environVar "BUGSNAG_NET_NUGET_API_KEY"
-      AssemblyInfoFilePaths = ["src/ASeward.MiscTools/AssemblyInfo.fs"]
-      Project               = "ASeward.MiscTools"
-      ProjectFilePath       = Some "src/ASeward.MiscTools/ASeward.MiscTools.fsproj"
-      OutputPath            = "."
-      WorkingDir            = "."
-  }
 )
 
 let paketOutputDir = ".dist"
@@ -57,10 +88,5 @@ Target "Paket:Push" (fun _ ->
 
 "Paket:Pack" <== ["Build:Release"]
 "Paket:Push" <== ["Paket:Pack"]
-
-// Deprecated
-"Package:NuGetFail"
-  ==> "Package:Project"
-  ==> "Publish"
 
 RunTargetOrDefault "Build:Release"
