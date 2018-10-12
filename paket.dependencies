@@ -3,5 +3,4 @@ source https://api.nuget.org/v3/index.json
 nuget ASeward.MiscTools 0.0.2-a
 nuget FAKE
 nuget FSharp.Core
-nuget FSharp.FakeTargets
 nuget System.ValueTuple 4.4.0 prerelease restriction: >= net471
