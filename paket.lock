@@ -1,5 +1,8 @@
 NUGET
   remote: https://api.nuget.org/v3/index.json
+    ASeward.MiscTools (0.0.2-a)
+      FSharp.Core
+      System.ValueTuple (>= 4.4.0-prerelease <= 4.4)
     FAKE (4.63.2)
     FSharp.Core (4.5.2)
       System.Collections (>= 4.0.11) - restriction: && (< net45) (>= netstandard1.6) (< netstandard2.0)
@@ -25,13 +28,6 @@ NUGET
       System.Threading.Thread (>= 4.0) - restriction: && (< net45) (>= netstandard1.6) (< netstandard2.0)
       System.Threading.ThreadPool (>= 4.0.10) - restriction: && (< net45) (>= netstandard1.6) (< netstandard2.0)
       System.Threading.Timer (>= 4.0.1) - restriction: && (< net45) (>= netstandard1.6) (< netstandard2.0)
-    FSharp.FakeTargets (0.12.1)
-      FAKE (>= 4.63.2)
-      FSharp.Core (>= 4.2.3)
-      FSharp.FilePath.Utils (>= 0.2.1)
-      FSharp.Version.Utils (>= 0.3)
-    FSharp.FilePath.Utils (0.2.1)
-    FSharp.Version.Utils (0.3)
     Microsoft.NETCore.Platforms (2.1.1) - restriction: || (&& (>= dnxcore50) (>= netstandard1.6)) (&& (< monoandroid) (< monotouch) (< net45) (>= netstandard1.6) (< netstandard2.0) (< win8) (< wpa81) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (< net45) (< netstandard1.3) (>= netstandard1.6) (< win8) (< wpa81)) (&& (< monoandroid) (< net45) (< netstandard1.5) (>= netstandard1.6) (< win8) (< wpa81))
     Microsoft.NETCore.Targets (2.1) - restriction: || (&& (>= dnxcore50) (>= netstandard1.6)) (&& (< monoandroid) (< monotouch) (< net45) (>= netstandard1.6) (< netstandard2.0) (< xamarinmac) (< xamarintvos) (< xamarinwatchos))
     runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl (4.3.3) - restriction: || (&& (>= dnxcore50) (>= netstandard1.6)) (&& (< monoandroid) (< monotouch) (< net45) (>= netstandard1.6) (< netstandard2.0) (< win8) (< wpa81) (< xamarinmac) (< xamarintvos) (< xamarinwatchos))
