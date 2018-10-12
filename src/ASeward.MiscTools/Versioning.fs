@@ -115,3 +115,53 @@ module Versioning =
       _replaceAttrValue
         _infoVersionRegex
         SemVer.toString
+
+    let replaceAll semVer =
+      (replaceAssemblyVersion semVer)
+      >> (replaceAssemblyFileVersion semVer)
+      >> (replaceAssemblyInformationalVersion semVer)
+
+    let updateFile fn filePath =
+      filePath
+      |> File.ReadAllText
+      |> fn
+      |> fun contents -> File.WriteAllText (filePath, contents)
+
+  module FakeTargetStubs =
+    open ASeward.MiscTools.ActivePatterns
+    open System
+
+    let private _write filePath semVer =
+      filePath |> AssemblyInfo.updateFile (AssemblyInfo.replaceAll semVer)
+    let private _iterMap asmInfoPaths fn  =
+      asmInfoPaths
+      |> List.iter (fun filePath ->
+          filePath
+          |> AssemblyInfo.tryReadInfoVersion
+          |> Option.map fn
+          |> Option.iter (_write filePath)
+      )
+
+    let private _promptFor paramName =
+      paramName
+      |> sprintf "No value provided for parameter '%s'. Please specify (default: ''): "
+      |> Console.Write
+      |> Console.ReadLine
+      |> fun str -> str.Trim ()
+
+    let private _withParamOrPrompt (getBuildParam: string -> string) (fn: string -> SemanticVersion -> SemanticVersion) paramName =
+      paramName
+      |> getBuildParam
+      |> function
+          | NullOrWhiteSpace -> _promptFor paramName
+          | str -> str
+      |> fun pre -> fn pre
+
+    let createVersionTargets (create: string -> (unit -> unit) -> unit) (getBuildParam: string -> string) (asmInfPaths: string list) =
+      let apply = _iterMap asmInfPaths
+
+      create "version:major" <| fun _ -> apply SemVer.incrMajor
+      create "version:minor" <| fun _ -> apply SemVer.incrMinor
+      create "version:patch" <| fun _ -> apply SemVer.incrPatch
+      create "version:pre"   <| fun _ -> apply (_withParamOrPrompt getBuildParam SemVer.setPre "pre")
+      create "version:meta"  <| fun _ -> apply (_withParamOrPrompt getBuildParam SemVer.setMeta "meta")
