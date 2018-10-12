@@ -128,6 +128,7 @@ module Versioning =
       |> fun contents -> File.WriteAllText (filePath, contents)
 
   module FakeTargetStubs =
+    open ASeward.MiscTools.ActivePatterns
     open System
 
     let private _write filePath semVer =
@@ -156,11 +157,11 @@ module Versioning =
           | str -> str
       |> fun pre -> fn pre
 
-    let declareAll (asmInfPaths: string list) (getBuildParam: string -> string) (target: string -> (unit -> unit) -> unit) =
+    let createVersionTargets (create: string -> (unit -> unit) -> unit) (getBuildParam: string -> string) (asmInfPaths: string list) =
       let apply = _iterMap asmInfPaths
 
-      target "version:major" <| fun _ -> apply SemVer.incrMajor
-      target "version:minor" <| fun _ -> apply SemVer.incrMinor
-      target "version:patch" <| fun _ -> apply SemVer.incrPatch
-      target "version:pre"   <| fun _ -> apply (_withParamOrPrompt getBuildParam SemVer.setPre "pre")
-      target "version:meta"  <| fun _ -> apply (_withParamOrPrompt getBuildParam SemVer.setMeta "meta")
+      create "version:major" <| fun _ -> apply SemVer.incrMajor
+      create "version:minor" <| fun _ -> apply SemVer.incrMinor
+      create "version:patch" <| fun _ -> apply SemVer.incrPatch
+      create "version:pre"   <| fun _ -> apply (_withParamOrPrompt getBuildParam SemVer.setPre "pre")
+      create "version:meta"  <| fun _ -> apply (_withParamOrPrompt getBuildParam SemVer.setMeta "meta")
