@@ -1,6 +1,6 @@
 NUGET
   remote: https://api.nuget.org/v3/index.json
-    ASeward.MiscTools (0.0.2-a)
+    ASeward.MiscTools (0.0.2)
       FSharp.Core
       System.ValueTuple (>= 4.4.0-prerelease <= 4.4)
     FAKE (4.63.2)
