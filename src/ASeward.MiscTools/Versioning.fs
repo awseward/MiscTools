@@ -1,17 +1,6 @@
 ﻿namespace ASeward.MiscTools
 
-open System
 open System.Text.RegularExpressions
-
-module Int32 =
-  let ofRegexGroup (group: Group) = Int32.Parse group.Value
-  let ofNamedCapture (name: string) (m: Match) = ofRegexGroup m.Groups.[name]
-
-module Regex =
-  let tryMatch (regex: Regex) input =
-    input
-    |> regex.Match
-    |> Option.someIf (fun m -> m.Success)
 
 module Versioning =
 
@@ -58,11 +47,11 @@ module Versioning =
     let tryParse =
       (Regex.tryMatch _regex)
       >> Option.map (fun mtch ->
-          { major = mtch |> Int32.ofNamedCapture  "major"
-            minor = mtch |> Int32.ofNamedCapture  "minor"
-            patch = mtch |> Int32.ofNamedCapture  "patch"
-            pre   = mtch |> Option.ofNamedCapture "prerelease"
-            meta  = mtch |> Option.ofNamedCapture "metadata" }
+          { major = mtch |> Regex.namedCaptureToInt    "major"
+            minor = mtch |> Regex.namedCaptureToInt    "minor"
+            patch = mtch |> Regex.namedCaptureToInt    "patch"
+            pre   = mtch |> Regex.namedCaptureToOption "prerelease"
+            meta  = mtch |> Regex.namedCaptureToOption "metadata" }
       )
 
     let toString ({ major = major; minor = minor; patch = patch } as semVer) =
@@ -87,13 +76,42 @@ module Versioning =
   module AssemblyInfo =
     open System.IO
 
-    let private _versionRegex     = Regex (@"AssemblyVersion\s*\(\s*""(?<attrVal>[^""]+)""\s*\)(?:\s*>)?\s*]\s*$", RegexOptions.Multiline)
-    let private _fileVersionRegex = Regex (@"AssemblyFileVersion\s*\(\s*""(?<attrVal>[^""]+)""\s*\)(?:\s*>)?\s*]\s*$", RegexOptions.Multiline)
-    let private _infoVersionRegex = Regex (@"AssemblyInformationalVersion\s*\(\s*""(?<attrVal>[^""]+)""\s*\)(?:\s*>)?\s*]\s*$", RegexOptions.Multiline)
+    let private _buildAttrRegex (name: string) : Regex =
+      name
+      |> sprintf @"^(?!//)(?<prefix>\s*\[(?:\s*<)?\s*assembly\s*:\s*%s\s*\(\s*"")(?<attrVal>[^""]+)(?<postfix>""\s*\)(?:\s*>)?\s*]\s*)"
+      |> fun pattern -> (pattern, RegexOptions.Multiline)
+      |> Regex
+    let private _versionRegex     = _buildAttrRegex "AssemblyVersion"
+    let private _fileVersionRegex = _buildAttrRegex "AssemblyFileVersion"
+    let private _infoVersionRegex = _buildAttrRegex "AssemblyInformationalVersion"
+
+    let private _toString a = a.ToString()
+    let private _toSystemVersionString = SemVer.toSystemVersion >> _toString
+
+    let private _replaceAttrValue (regex: Regex) semVerToString (semVer: SemanticVersion) content =
+      semVer
+      |> semVerToString
+      |> sprintf "${prefix}%s${postfix}"
+      |> fun replacement -> regex.Replace (input = content, replacement = replacement)
 
     let tryParseInfoVersion =
       (Regex.tryMatch _infoVersionRegex)
-      >> Option.bind (Option.ofNamedCapture "attrVal")
+      >> Option.bind (Regex.namedCaptureToOption "attrVal")
       >> Option.bind SemVer.tryParse
 
     let tryReadInfoVersion = File.ReadAllText >> tryParseInfoVersion
+
+    let replaceAssemblyVersion =
+      _replaceAttrValue
+        _versionRegex
+        (_toSystemVersionString)
+
+    let replaceAssemblyFileVersion =
+      _replaceAttrValue
+        _fileVersionRegex
+        (_toSystemVersionString)
+
+    let replaceAssemblyInformationalVersion =
+      _replaceAttrValue
+        _infoVersionRegex
+        SemVer.toString

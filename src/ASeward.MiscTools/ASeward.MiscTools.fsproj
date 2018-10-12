@@ -53,6 +53,8 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Option.fs" />
+    <Compile Include="Regex.fs" />
+    <Compile Include="ActivePatterns.fs" />
     <Compile Include="Versioning.fs" />
     <Content Include="paket.references" />
   </ItemGroup>
