@@ -115,3 +115,14 @@ module Versioning =
       _replaceAttrValue
         _infoVersionRegex
         SemVer.toString
+
+    let replaceAll semVer =
+      (replaceAssemblyVersion semVer)
+      >> (replaceAssemblyFileVersion semVer)
+      >> (replaceAssemblyInformationalVersion semVer)
+
+    let updateFile fn filePath =
+      filePath
+      |> File.ReadAllText
+      |> fn
+      |> fun contents -> File.WriteAllText (filePath, contents)
