@@ -1,10 +1,13 @@
 #r "./packages/FAKE/tools/FakeLib.dll"
 #r "./packages/ASeward.MiscTools/lib/net471/ASeward.MiscTools.dll"
 
-open ASeward.MiscTools.Versioning
+open ASeward.MiscTools
 open Fake
+open System
 
-FakeTargetStubs.createVersionTargets Target getBuildParam ["src/ASeward.MiscTools/AssemblyInfo.fs"]
+Versioning.FakeTargetStubs.createVersionTargets Target getBuildParam ["src/ASeward.MiscTools/AssemblyInfo.fs"]
+
+let ghToken = Environment.GetEnvironmentVariable "GITHUB_TOKEN"
 
 let projects = !! "/**/*.fsproj"
 
