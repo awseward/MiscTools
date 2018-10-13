@@ -1,2 +1,4 @@
 System.ValueTuple
 FSharp.Core
+Newtonsoft.Json
+Http.fs
