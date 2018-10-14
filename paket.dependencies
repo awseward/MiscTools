@@ -2,6 +2,6 @@ source https://api.nuget.org/v3/index.json
 
 nuget ASeward.MiscTools 0.0.3
 nuget FAKE
-nuget FSharp.Core
-nuget Newtonsoft.Json
+nuget FSharp.Core >= 4.2.3
+nuget Newtonsoft.Json >= 11.0.0
 nuget System.ValueTuple 4.4.0 prerelease restriction: >= net471
