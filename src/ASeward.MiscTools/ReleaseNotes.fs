@@ -6,6 +6,7 @@ open System.Net.Http
 open System.Text.RegularExpressions
 open System.Linq
 open System.Diagnostics
+open System.Net.Http
 
 module private Util =
   type private ___ = interface end
@@ -16,7 +17,10 @@ module private Util =
       .GetVersionInfo(_t.Assembly.Location)
       .ProductVersion
   let userAgentString = sprintf "%s/%s" projectNamespace projectVersionString
-  let client = new HttpClient ()
+  let client =
+    let c = new HttpClient ()
+    c.DefaultRequestHeaders.Add ("User-Agent", userAgentString)
+    c
 
 module ReleaseNotes =
 
@@ -42,10 +46,10 @@ module ReleaseNotes =
 
     let private _buildGetRequest token (uri: Uri) =
       let request = new HttpRequestMessage (HttpMethod.Get, uri)
-      let addHeader name (value: string) = request.Headers.TryAddWithoutValidation (name, value) |> ignore
 
-      addHeader "User-Agent" Util.userAgentString
-      addHeader "Authorization" (sprintf "token %s" token)
+      token
+      |> sprintf "token %s"
+      |> fun headerValue -> request.Headers.Add ("Authorization", headerValue)
 
       request
 
