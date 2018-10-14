@@ -164,3 +164,31 @@ module ReleaseNotes =
         |> List.map (sprintf "* %s")
         |> String.concat Environment.NewLine
     }
+
+  module FakeTargetStubs =
+    open ASeward.MiscTools.ActivePatterns
+
+    let targetName = "releaseNotes:print"
+    let printReleaseNotes (getBuildParamOrDefault: string -> string -> string) org repo =
+      let getBuildParam name = getBuildParamOrDefault name ""
+      let token = Environment.GetEnvironmentVariable "GITHUB_TOKEN"
+
+      printfn ""
+
+      match getBuildParam "base" with
+      | NullOrWhiteSpace -> ()
+      | baseCommit ->
+          let headCommit = getBuildParamOrDefault "head" "master"
+          printfn "https://github.com/%s/%s/compare/%s...%s" org repo baseCommit headCommit
+          printfn ""
+
+      "prs"
+      |> getBuildParam
+      |> fun str -> str.Split ';'
+      |> Array.map int
+      |> Array.toList
+      |> doTheThingAsync token org repo
+      |> Async.RunSynchronously
+      |> printfn "%s"
+
+      printfn ""
