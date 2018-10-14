@@ -1,48 +1,45 @@
 #r "./packages/FAKE/tools/FakeLib.dll"
 #r "./packages/ASeward.MiscTools/lib/net471/ASeward.MiscTools.dll"
+#load "./temp/shims.fsx"
 
 open ASeward.MiscTools
-open Fake
-open System
+open ASeward.MiscTools.Shims
+open Fake.Core
+open Fake.DotNet
+open Fake.IO
+open Fake.IO.Globbing.Operators
 
-// Here to enable newer TLS versions (GitHub has disallowed older versions)
-open System.Net
-ServicePointManager.SecurityProtocol <- ServicePointManager.SecurityProtocol ||| SecurityProtocolType.Tls ||| SecurityProtocolType.Tls11 ||| SecurityProtocolType.Tls12
+Versioning.FakeTargetStubs.createVersionTargets Target Environment.environVar ["src/ASeward.MiscTools/AssemblyInfo.fs"]
 
-Versioning.FakeTargetStubs.createVersionTargets Target getBuildParam ["src/ASeward.MiscTools/AssemblyInfo.fs"]
+Target ReleaseNotes.FakeTargetStubs.targetName <| fun _ ->
+  ReleaseNotes.FakeTargetStubs.printReleaseNotes
+    (Environment.environVarOrDefault)
+    "awseward"
+    "misctools"
 
-Target
-  ReleaseNotes.FakeTargetStubs.targetName
-  (fun _ ->
-    ReleaseNotes.FakeTargetStubs.printReleaseNotes
-      (getBuildParamOrDefault)
-      "awseward"
-      "misctools"
-  )
-
-let projects = !! "/**/*.fsproj"
+let projects = !! "**/*.fsproj"
 
 Target "Build:Release" (fun _ ->
   projects
-  |> MSBuildRelease null "Clean;Rebuild"
-  |> Log "AppBuild-Output: "
+  |> MSBuild.runRelease id null "Clean;Rebuild"
+  |> Trace.logItems "AppBuild-Output: "
 )
 
 let paketOutputDir = ".dist"
 
 Target "Paket:Pack" (fun _ ->
-  FileHelper.CleanDir paketOutputDir
+  Shell.cleanDir paketOutputDir
 
-  Paket.Pack <| fun p ->
+  Paket.pack <| fun p ->
     { p with
         OutputPath = paketOutputDir
     }
 )
 
 Target "Paket:Push" (fun _ ->
-  Paket.Push <| fun p ->
+  Paket.push <| fun p ->
     { p with
-        ApiKey = environVar "BUGSNAG_NET_NUGET_API_KEY"
+        ApiKey = Environment.environVar "BUGSNAG_NET_NUGET_API_KEY"
         WorkingDir = paketOutputDir
     }
 )
