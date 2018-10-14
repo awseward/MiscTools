@@ -4,6 +4,10 @@
 open ASeward.MiscTools.Versioning
 open Fake
 
+// Here to enable newer TLS versions (GitHub has disallowed older versions)
+open System.Net
+ServicePointManager.SecurityProtocol <- ServicePointManager.SecurityProtocol ||| SecurityProtocolType.Tls ||| SecurityProtocolType.Tls11 ||| SecurityProtocolType.Tls12
+
 FakeTargetStubs.createVersionTargets Target getBuildParam ["src/ASeward.MiscTools/AssemblyInfo.fs"]
 
 let projects = !! "/**/*.fsproj"
