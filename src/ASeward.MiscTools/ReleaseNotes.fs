@@ -6,6 +6,7 @@ open System.Net.Http
 open System.Text.RegularExpressions
 open System.Linq
 open System.Diagnostics
+open System.Net.Http
 
 module private Util =
   type private ___ = interface end
@@ -16,7 +17,10 @@ module private Util =
       .GetVersionInfo(_t.Assembly.Location)
       .ProductVersion
   let userAgentString = sprintf "%s/%s" projectNamespace projectVersionString
-  let client = new HttpClient ()
+  let client =
+    let c = new HttpClient ()
+    c.DefaultRequestHeaders.Add ("User-Agent", userAgentString)
+    c
 
 module ReleaseNotes =
 
@@ -42,10 +46,10 @@ module ReleaseNotes =
 
     let private _buildGetRequest token (uri: Uri) =
       let request = new HttpRequestMessage (HttpMethod.Get, uri)
-      let addHeader name (value: string) = request.Headers.TryAddWithoutValidation (name, value) |> ignore
 
-      addHeader "User-Agent" Util.userAgentString
-      addHeader "Authorization" (sprintf "token %s" token)
+      token
+      |> sprintf "token %s"
+      |> fun headerValue -> request.Headers.Add ("Authorization", headerValue)
 
       request
 
@@ -160,3 +164,31 @@ module ReleaseNotes =
         |> List.map (sprintf "* %s")
         |> String.concat Environment.NewLine
     }
+
+  module FakeTargetStubs =
+    open ASeward.MiscTools.ActivePatterns
+
+    let targetName = "releaseNotes:print"
+    let printReleaseNotes (getBuildParamOrDefault: string -> string -> string) org repo =
+      let getBuildParam name = getBuildParamOrDefault name ""
+      let token = Environment.GetEnvironmentVariable "GITHUB_TOKEN"
+
+      printfn ""
+
+      match getBuildParam "base" with
+      | NullOrWhiteSpace -> ()
+      | baseCommit ->
+          let headCommit = getBuildParamOrDefault "head" "master"
+          printfn "https://github.com/%s/%s/compare/%s...%s" org repo baseCommit headCommit
+          printfn ""
+
+      "prs"
+      |> getBuildParam
+      |> fun str -> str.Split ';'
+      |> Array.map int
+      |> Array.toList
+      |> doTheThingAsync token org repo
+      |> Async.RunSynchronously
+      |> printfn "%s"
+
+      printfn ""
