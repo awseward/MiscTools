@@ -1,9 +1,8 @@
 namespace ASeward.MiscTools
 
-open Hopac
-open HttpFs.Client
 open Newtonsoft.Json
 open System
+open System.Net.Http
 open System.Text.RegularExpressions
 open System.Linq
 open System.Diagnostics
@@ -17,6 +16,7 @@ module private Util =
       .GetVersionInfo(_t.Assembly.Location)
       .ProductVersion
   let userAgentString = sprintf "%s/%s" projectNamespace projectVersionString
+  let client = new HttpClient ()
 
 module ReleaseNotes =
 
@@ -40,31 +40,45 @@ module ReleaseNotes =
     let private _getPullRequestPath org repo prNum =
       sprintf "/repos/%s/%s/pulls/%i" org repo prNum
 
-    let private _setGitHubRequestHeaders token request =
+    let private _buildGetRequest token (uri: Uri) =
+      let request = new HttpRequestMessage (HttpMethod.Get, uri)
+      let addHeader name (value: string) = request.Headers.TryAddWithoutValidation (name, value) |> ignore
+
+      addHeader "User-Agent" Util.userAgentString
+      addHeader "Authorization" (sprintf "token %s" token)
+
       request
-      |> Request.setHeader (Authorization (sprintf "token %s" token))
-      |> Request.setHeader (UserAgent Util.userAgentString)
 
-    let private _getResponseBody setHeaders (uri: Uri) =
-      uri
-      |> fun u -> u.ToString ()
-      |> Request.createUrl Get
-      |> setHeaders
-      |> Request.responseAsString
-      |> run
+    let private _sendRequestAsync request =
+      request
+      |> Util.client.SendAsync
+      |> Async.AwaitTask
 
-    let getPullRequest token org repo prNum =
-      prNum
-      |> _getPullRequestPath org repo
-      |> _getUrlForPath
-      |> _getResponseBody (_setGitHubRequestHeaders token)
-      |> JsonConvert.DeserializeObject<PullRequest>
+    let private _getResponseBodyAsync (response: HttpResponseMessage) =
+      Async.AwaitTask <| response.Content.ReadAsStringAsync ()
 
-    let tryGetPullRequest token org repo prNum =
-      try
-        Some <| getPullRequest token org repo prNum
-      with
-      | ex -> eprintf "ERROR: %A" ex; None
+    let getPullRequestAsync token org repo prNum =
+      async {
+        let! response =
+          prNum
+          |> _getPullRequestPath org repo
+          |> _getUrlForPath
+          |> _buildGetRequest token
+          |> _sendRequestAsync
+        let! responseBody = _getResponseBodyAsync response
+
+        return JsonConvert.DeserializeObject<PullRequest> responseBody
+      }
+
+    let tryGetPullRequestAsync token org repo prNum =
+      async {
+        try
+          let! pullRequest = getPullRequestAsync token org repo prNum
+
+          return (Some pullRequest)
+        with
+        | ex -> eprintf "ERROR: %A" ex; return None
+      }
 
   module SemanticCommit =
     type SemMsg =
@@ -118,21 +132,31 @@ module ReleaseNotes =
   let private _toSemPr (pullRequest: GitHub.PullRequest) : SemanticCommit.SemPr =
     { title = (SemanticCommit.parseSemMsg pullRequest.title)
       htmlUri = (Uri pullRequest.html_url) }
-  let doTheThing token org repo prNums =
-    prNums
-    |> List.choose (GitHub.tryGetPullRequest token org repo)
-    |> List.map _toSemPr
-    |> TableRendering.toColumns
-        [
-          (fun pull ->
-            match pull.title.prefix with
-            | Some pfx -> sprintf "%s:" pfx
-            | _        -> ""
-          )
-          (fun pull -> pull.title.message)
-          (fun pull -> pull.htmlUri.ToString())
-        ]
-        " "
-    |> (List.ofSeq >> List.sort)
-    |> List.map (sprintf "* %s")
-    |> String.concat Environment.NewLine
+
+  let doTheThingAsync token org repo prNums =
+    async {
+      let! prOpts =
+        prNums
+        |> List.map (GitHub.tryGetPullRequestAsync token org repo)
+        |> Async.Parallel
+
+      return
+        prOpts
+        |> Array.filter Option.isSome
+        |> Array.map Option.get // Looks bad but is safe w/ the filter above
+        |> Array.map _toSemPr
+        |> TableRendering.toColumns
+           [
+             (fun pull ->
+               match pull.title.prefix with
+               | Some prefix -> sprintf "%s:" prefix
+               | _  -> ""
+             )
+             (fun pull -> pull.title.message)
+             (fun pull -> pull.htmlUri.ToString())
+           ]
+           " "
+        |> (List.ofSeq >> List.sort)
+        |> List.map (sprintf "* %s")
+        |> String.concat Environment.NewLine
+    }
