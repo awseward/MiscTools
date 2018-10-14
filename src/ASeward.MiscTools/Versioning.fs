@@ -163,5 +163,20 @@ module Versioning =
       create "version:major" <| fun _ -> apply SemVer.incrMajor
       create "version:minor" <| fun _ -> apply SemVer.incrMinor
       create "version:patch" <| fun _ -> apply SemVer.incrPatch
+
       create "version:pre"   <| fun _ -> apply (_withParamOrPrompt getBuildParam SemVer.setPre "pre")
       create "version:meta"  <| fun _ -> apply (_withParamOrPrompt getBuildParam SemVer.setMeta "meta")
+
+      create "version:current" (fun _ ->
+        let tryRead filePath =
+          match AssemblyInfo.tryReadInfoVersion filePath with
+          | Some v -> Some (filePath, SemVer.toString v)
+          | _ -> None
+
+        asmInfPaths
+        |> List.choose (fun filePath ->
+            match AssemblyInfo.tryReadInfoVersion filePath with
+            | Some v -> Some (filePath, SemVer.toString v)
+            | _ -> None)
+        |> List.iter (printfn "%A")
+      )
