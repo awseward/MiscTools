@@ -1,33 +1,26 @@
-#r "./packages/FAKE/tools/FakeLib.dll"
-#r "./packages/ASeward.MiscTools/lib/net471/ASeward.MiscTools.dll"
-#load "./temp/shims.fsx"
-
-open ASeward.MiscTools
-open ASeward.MiscTools.Shims
+#r "paket: groupref build //"
+#load ".fake/build.fsx/intellisense.fsx"
 open Fake.Core
 open Fake.DotNet
 open Fake.IO
+open Fake.IO.FileSystemOperators
 open Fake.IO.Globbing.Operators
+open Fake.Core.TargetOperators
 
-Versioning.FakeTargetStubs.createVersionTargets Target Environment.environVar ["src/ASeward.MiscTools/AssemblyInfo.fs"]
-
-Target ReleaseNotes.FakeTargetStubs.targetName <| fun _ ->
-  ReleaseNotes.FakeTargetStubs.printReleaseNotes
-    (Environment.environVarOrDefault)
-    "awseward"
-    "misctools"
-
-let projects = !! "**/*.fsproj"
-
-Target "Build:Release" (fun _ ->
-  projects
-  |> MSBuild.runRelease id null "Clean;Rebuild"
-  |> Trace.logItems "AppBuild-Output: "
+Target.create "Clean" (fun _ ->
+  !! "src/**/bin"
+  ++ "src/**/obj"
+  |> Shell.cleanDirs
 )
 
-let paketOutputDir = ".dist"
+Target.create "Build:Release" (fun _ ->
+  !! "src/**/*.*proj"
+  |> Seq.iter (DotNet.build id)
+)
 
-Target "Paket:Pack" (fun _ ->
+let paketOutputDir = "dist"
+
+Target.create "Paket:Pack" (fun _ ->
   Shell.cleanDir paketOutputDir
 
   Paket.pack <| fun p ->
@@ -36,7 +29,7 @@ Target "Paket:Pack" (fun _ ->
     }
 )
 
-Target "Paket:Push" (fun _ ->
+Target.create "Paket:Push" (fun _ ->
   Paket.push <| fun p ->
     { p with
         ApiKey = Environment.environVar "BUGSNAG_NET_NUGET_API_KEY"
@@ -44,7 +37,12 @@ Target "Paket:Push" (fun _ ->
     }
 )
 
-"Paket:Pack" <== ["Build:Release"]
-"Paket:Push" <== ["Paket:Pack"]
+Target.create "All" ignore
 
-RunTargetOrDefault "Build:Release"
+"Clean"
+  ==> "Build:Release"
+  ==> "Paket:Pack"
+  ==> "Paket:Push"
+  ==> "All"
+
+Target.runOrDefault "All"
