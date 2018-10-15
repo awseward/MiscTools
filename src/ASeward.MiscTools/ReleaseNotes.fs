@@ -11,14 +11,15 @@ module private Util =
   type private ___ = interface end
   let private _t = typeof<___>
   let projectNamespace = _t.Namespace
-  let projectVersionString =
-    FileVersionInfo
-      .GetVersionInfo(_t.Assembly.Location)
-      .ProductVersion
-  let userAgentString = sprintf "%s/%s" projectNamespace projectVersionString
+  // FIXME
+  // let projectVersionString =
+  //   FileVersionInfo
+  //     .GetVersionInfo(_t.Assembly.Location)
+  //     .ProductVersion
+  // let userAgentString = sprintf "%s/%s" projectNamespace projectVersionString
   let client =
     let c = new HttpClient ()
-    c.DefaultRequestHeaders.Add ("User-Agent", userAgentString)
+    c.DefaultRequestHeaders.Add ("User-Agent", projectNamespace)
     c
 
 module ReleaseNotes =
@@ -192,7 +193,7 @@ module ReleaseNotes =
 
       printfn ""
 
-   let printReleaseNotesFake5 (getPrNums: unit -> int list) org repo =
+    let printReleaseNotesFake5 (getPrNums: unit -> int list) org repo =
       let token = Environment.GetEnvironmentVariable "GITHUB_TOKEN"
 
       printfn ""
