@@ -8,6 +8,7 @@ group Build
   storage none
   source https://api.nuget.org/v3/index.json
 
+  nuget ASeward.MiscTools 0.0.5-a
   nuget Fake.Core.Target
   nuget Fake.DotNet.Cli
   nuget Fake.DotNet.Paket

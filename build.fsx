@@ -6,6 +6,21 @@ open Fake.IO
 open Fake.IO.FileSystemOperators
 open Fake.IO.Globbing.Operators
 open Fake.Core.TargetOperators
+open ASeward.MiscTools
+
+// Target.create
+//   ReleaseNotes.FakeTargetStubs.targetName
+//   (fun targetArgs ->
+//     let getPrNums () =
+//       targetArgs.Context.Arguments.[0]
+//       |> fun str -> str.Split ';'
+//       |> Array.toList
+
+//     ReleaseNotes.FakeTargetStubs.printReleaseNotesFake5
+//       (getPrNums)
+//       "awseward"
+//       "misctools"
+//   )
 
 Target.create "Clean" (fun _ ->
   !! "src/**/bin"
@@ -45,4 +60,4 @@ Target.create "All" ignore
   ==> "Paket:Push"
   ==> "All"
 
-Target.runOrDefault "All"
+Target.runOrDefaultWithArguments "All"

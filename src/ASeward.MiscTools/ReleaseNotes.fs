@@ -6,7 +6,6 @@ open System.Net.Http
 open System.Text.RegularExpressions
 open System.Linq
 open System.Diagnostics
-open System.Net.Http
 
 module private Util =
   type private ___ = interface end
@@ -187,6 +186,18 @@ module ReleaseNotes =
       |> fun str -> str.Split ';'
       |> Array.map int
       |> Array.toList
+      |> doTheThingAsync token org repo
+      |> Async.RunSynchronously
+      |> printfn "%s"
+
+      printfn ""
+
+   let printReleaseNotesFake5 (getPrNums: unit -> int list) org repo =
+      let token = Environment.GetEnvironmentVariable "GITHUB_TOKEN"
+
+      printfn ""
+
+      getPrNums ()
       |> doTheThingAsync token org repo
       |> Async.RunSynchronously
       |> printfn "%s"
