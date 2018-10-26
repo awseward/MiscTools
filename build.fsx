@@ -1,5 +1,5 @@
 #r "./packages/FAKE/tools/FakeLib.dll"
-#r "./packages/ASeward.MiscTools/lib/net471/ASeward.MiscTools.dll"
+#r "./packages/ASeward.MiscTools/lib/netstandard2.0/ASeward.MiscTools.dll"
 #load "./temp/shims.fsx"
 
 open ASeward.MiscTools

@@ -1,6 +1,6 @@
 source https://api.nuget.org/v3/index.json
 
-nuget ASeward.MiscTools 0.0.4-c
+nuget ASeward.MiscTools 0.0.5-a1
 nuget FAKE
 nuget FSharp.Core >= 4.2.3
 nuget Newtonsoft.Json >= 11.0.0
