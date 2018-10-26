@@ -5,4 +5,4 @@ set -euo pipefail
 
 dotnet restore
 
-mono ./packages/FAKE/tools/FAKE.exe build.fsx $@
+mono ./packages/FAKE/tools/FAKE.exe build.fsx $@ --removeLegacyFakeWarning

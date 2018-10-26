@@ -13,7 +13,7 @@ Versioning.FakeTargetStubs.createVersionTargets Target Environment.environVar ["
 
 Target ReleaseNotes.FakeTargetStubs.targetName <| fun _ ->
   ReleaseNotes.FakeTargetStubs.printReleaseNotes
-    (Environment.environVarOrDefault)
+    getBuildParamOrDefault
     "awseward"
     "misctools"
 

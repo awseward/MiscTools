@@ -12,11 +12,11 @@ module private Util =
   type private ___ = interface end
   let private _t = typeof<___>
   let projectNamespace = _t.Namespace
-  let projectVersionString =
-    FileVersionInfo
-      .GetVersionInfo(_t.Assembly.Location)
-      .ProductVersion
-  let userAgentString = sprintf "%s/%s" projectNamespace projectVersionString
+  let projectVersionString = "FIXME"
+    // FileVersionInfo
+    //   .GetVersionInfo(_t.Assembly.Location)
+    //   .ProductVersion
+  let userAgentString = projectNamespace // sprintf "%s/%s" projectNamespace projectVersionString
   let client =
     let c = new HttpClient ()
     c.DefaultRequestHeaders.Add ("User-Agent", userAgentString)
