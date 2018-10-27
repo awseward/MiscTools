@@ -1,6 +1,6 @@
-#! /bin/sh
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
 ./paket.sh restore --fail-on-checks
 
-./packages/FAKE/tools/FAKE.exe build.fsx $@
+./packages/fakebuild/FAKE/tools/FAKE.exe build.fsx $@ --removeLegacyFakeWarning

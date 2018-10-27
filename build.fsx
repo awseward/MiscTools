@@ -1,5 +1,5 @@
-#r "./packages/FAKE/tools/FakeLib.dll"
-#r "./packages/ASeward.MiscTools/lib/net471/ASeward.MiscTools.dll"
+#r "./packages/fakebuild/FAKE/tools/FakeLib.dll"
+#r "./packages/fakebuild/ASeward.MiscTools/lib/netstandard2.0/ASeward.MiscTools.dll"
 #load "./temp/shims.fsx"
 
 open ASeward.MiscTools
@@ -13,7 +13,7 @@ Versioning.FakeTargetStubs.createVersionTargets Target Environment.environVar ["
 
 Target ReleaseNotes.FakeTargetStubs.targetName <| fun _ ->
   ReleaseNotes.FakeTargetStubs.printReleaseNotes
-    (Environment.environVarOrDefault)
+    getBuildParamOrDefault
     "awseward"
     "misctools"
 

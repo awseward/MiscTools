@@ -1,4 +1,6 @@
-#r "../packages/FAKE/tools/FakeLib.dll"
+#nowarn "44" // Silence obsolete warnings
+
+#r "../packages/fakebuild/FAKE/tools/FakeLib.dll"
 
 namespace ASeward.MiscTools
 
@@ -7,3 +9,4 @@ module Shims =
   let Target = Target
   let RunTargetOrDefault = RunTargetOrDefault
   let (<==) = (<==)
+  let getBuildParamOrDefault = getBuildParamOrDefault
