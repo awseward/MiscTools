@@ -13,6 +13,7 @@
     <Compile Include="ActivePatterns.fs" />
     <Compile Include="Versioning.fs" />
     <Compile Include="ReleaseNotes.fs" />
+    <Compile Include="FakeTargets.fs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="paket.references" />
