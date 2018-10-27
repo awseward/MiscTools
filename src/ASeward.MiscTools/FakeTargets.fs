@@ -8,6 +8,7 @@ module FakeTargets =
     |> Option.iter (fun baseCommit ->
         let headCommit = headOpt |> Option.defaultValue "master"
         printfn "https://github.com/%s/%s/compare/%s...%s" org repo baseCommit headCommit
+        printfn ""
     )
 
   module TargetNames =
@@ -41,7 +42,6 @@ module FakeTargets =
       printfn ""
 
     module private Versioning =
-      open ActivePatterns
       open Versioning
 
       let private _write filePath semVer =
@@ -69,7 +69,7 @@ module FakeTargets =
         |> function
             | NullOrWhiteSpace -> _promptFor paramName
             | str -> str
-        |> fun pre -> fn pre
+        |> fn
 
       let createVersionTargets (create: string -> (unit -> unit) -> unit) (getBuildParam: string -> string) (asmInfPaths: string list) =
         let apply = _iterMap asmInfPaths
