@@ -167,5 +167,7 @@ module ReleaseNotes =
 
   [<Obsolete("Prefer `ASeward.MiscTools.FakeTargets` module", error = true)>]
   module FakeTargetStubs =
+    [<Obsolete("Prefer `ASeward.MiscTools.FakeTargets` module", error = true)>]
     let targetName = ""
-    let printReleaseNotes (_: string -> string -> string) (_: string) (_: string) = ""
+    [<Obsolete("Prefer `ASeward.MiscTools.FakeTargets` module", error = true)>]
+    let printReleaseNotes (_: string -> string -> string) (_: string) (_: string) = ()

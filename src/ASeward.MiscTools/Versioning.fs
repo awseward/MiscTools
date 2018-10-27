@@ -130,5 +130,5 @@ module Versioning =
 
   [<Obsolete("Prefer `ASeward.MiscTools.FakeTargets` module", error = true)>]
   module FakeTargetStubs =
-    let createVersionTargets (create: string -> (unit -> unit) -> unit) (getBuildParam: string -> string) (asmInfPaths: string list) =
-      ()
+    [<Obsolete("Prefer `ASeward.MiscTools.FakeTargets` module", error = true)>]
+    let createVersionTargets (create: string -> (unit -> unit) -> unit) (getBuildParam: string -> string) (asmInfPaths: string list) = ()
