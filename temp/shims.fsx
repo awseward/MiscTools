@@ -1,6 +1,6 @@
 #nowarn "44" // Silence obsolete warnings
 
-#r "../packages/FAKE/tools/FakeLib.dll"
+#r "../packages/fakebuild/FAKE/tools/FakeLib.dll"
 
 namespace ASeward.MiscTools
 
