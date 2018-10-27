@@ -1,26 +1,44 @@
-#r "./packages/fakebuild/FAKE/tools/FakeLib.dll"
-#r "./packages/fakebuild/ASeward.MiscTools/lib/netstandard2.0/ASeward.MiscTools.dll"
-#load "./temp/shims.fsx"
+#r "paket: groupref fakebuild //"
+#load ".fake/build.fsx/intellisense.fsx"
+#if !FAKE
+  #r "netstandard"
+  #r "Facades/netstandard" // https://github.com/ionide/ionide-vscode-fsharp/issues/839#issuecomment-396296095
+#endif
+#load "./script/tempFake5.fsx"
 
 open ASeward.MiscTools
-open ASeward.MiscTools.Shims
 open Fake.Core
+open Fake.Core.TargetOperators
 open Fake.DotNet
 open Fake.IO
 open Fake.IO.Globbing.Operators
 
+let getFirstArgOrNull (parameter: TargetParameter) =
+  parameter.Context.Arguments
+  |> List.tryItem 0
+  |> Option.defaultValue null
 
-FakeTargets.Fake4.createVersionTargets Target getBuildParam ["src/ASeward.MiscTools/AssemblyInfo.fs"]
+TempFake5.Versioning.createVersionTargets Target.create getFirstArgOrNull ["src/ASeward.MiscTools/AssemblyInfo.fs"]
 
-Target FakeTargets.TargetNames.releaseNotesPrint <| fun _ ->
-  FakeTargets.Fake4.releaseNotesPrint
-    getBuildParamOrDefault
+Target.create FakeTargets.TargetNames.releaseNotesPrint (fun parameter ->
+  TempFake5.ReleaseNotes.releaseNotesPrint
+    (fun () -> "")                          // (FIXME) Get GitHub API token
+    (fun () -> getFirstArgOrNull parameter) // Get PR nums (form: `1;2;3`)
+    (fun () -> None)                        // (FIXME) Get base commit
+    (fun () -> None)                        // (FIXME) Get head commit
     "awseward"
     "misctools"
+)
 
 let projects = !! "**/*.fsproj"
 
-Target "Build:Release" (fun _ ->
+Target.create "Clean" (fun _ ->
+  !! "src/**/bin"
+  ++ "src/**/obj"
+  |> Shell.cleanDirs
+)
+
+Target.create "Build:Release" (fun _ ->
   projects
   |> MSBuild.runRelease id null "Clean;Rebuild"
   |> Trace.logItems "AppBuild-Output: "
@@ -28,7 +46,7 @@ Target "Build:Release" (fun _ ->
 
 let paketOutputDir = ".dist"
 
-Target "Paket:Pack" (fun _ ->
+Target.create "Paket:Pack" (fun _ ->
   Shell.cleanDir paketOutputDir
 
   Paket.pack <| fun p ->
@@ -37,10 +55,10 @@ Target "Paket:Pack" (fun _ ->
     }
 )
 
-Target "Paket:Push" (fun _ ->
+Target.create "Paket:Push" (fun _ ->
   Paket.push <| fun p ->
     { p with
-        ApiKey = Environment.environVar "BUGSNAG_NET_NUGET_API_KEY"
+        ApiKey = Environment.environVar "NUGET_API_KEY"
         WorkingDir = paketOutputDir
     }
 )
@@ -48,4 +66,4 @@ Target "Paket:Push" (fun _ ->
 "Paket:Pack" <== ["Build:Release"]
 "Paket:Push" <== ["Paket:Pack"]
 
-RunTargetOrDefault "Build:Release"
+Target.runOrDefaultWithArguments "Build:Release"
