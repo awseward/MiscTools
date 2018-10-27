@@ -11,8 +11,8 @@ open Fake.IO.Globbing.Operators
 
 Versioning.FakeTargetStubs.createVersionTargets Target Environment.environVar ["src/ASeward.MiscTools/AssemblyInfo.fs"]
 
-Target ReleaseNotes.FakeTargetStubs.targetName <| fun _ ->
-  ReleaseNotes.FakeTargetStubs.printReleaseNotes
+Target FakeTargets.TargetNames.releaseNotesPrint <| fun _ ->
+  FakeTargets.Fake4.releaseNotesPrint
     getBuildParamOrDefault
     "awseward"
     "misctools"

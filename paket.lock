@@ -661,7 +661,7 @@ NUGET
 GROUP FakeBuild
 NUGET
   remote: https://api.nuget.org/v3/index.json
-    ASeward.MiscTools (0.0.5-d)
+    ASeward.MiscTools (0.1.0-a)
       FSharp.Core (>= 4.2.3)
       Newtonsoft.Json (>= 11.0)
       System.ValueTuple (>= 4.4.0-prerelease <= 4.4)

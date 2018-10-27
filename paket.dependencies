@@ -7,5 +7,5 @@ nuget System.ValueTuple 4.4.0 prerelease restriction: >= net471
 group FakeBuild
   source https://api.nuget.org/v3/index.json
 
-  nuget ASeward.MiscTools 0.0.5-d
+  nuget ASeward.MiscTools 0.1.0-a
   nuget FAKE
