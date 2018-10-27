@@ -184,7 +184,9 @@ module ReleaseNotes =
 
       "prs"
       |> getBuildParam
-      |> fun str -> str.Split ';'
+      |> function
+          | NullOrWhiteSpace -> failwith "Missing required param 'prs'"
+          | str -> str.Split ';'
       |> Array.map int
       |> Array.toList
       |> doTheThingAsync token org repo
