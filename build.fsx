@@ -4,7 +4,7 @@
   #r "netstandard"
   #r "Facades/netstandard" // https://github.com/ionide/ionide-vscode-fsharp/issues/839#issuecomment-396296095
 #endif
-#load "./script/tempFake5.fsx"
+#load "./script/versioning.fsx"
 
 open ASeward.MiscTools
 open Fake.Core
@@ -18,7 +18,7 @@ let getFirstArgOrNull (parameter: TargetParameter) =
   |> List.tryItem 0
   |> Option.defaultValue null
 
-TempFake5.Versioning.createVersionTargets Target.create getFirstArgOrNull ["src/ASeward.MiscTools/AssemblyInfo.fs"]
+FakeBuild.Versioning.createTargets ["src/ASeward.MiscTools/AssemblyInfo.fs"]
 
 Target.create FakeTargets.TargetNames.releaseNotesPrint (fun parameter ->
   TempFake5.ReleaseNotes.releaseNotesPrint
