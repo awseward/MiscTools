@@ -17,6 +17,8 @@ module FakeTargets =
   module Fake4 =
     open ASeward.MiscTools.ActivePatterns
 
+    type TargetCreator = (string -> (unit -> unit) -> unit)
+
     let releaseNotesPrint getBuildParamOrDefault owner repo =
       let getBuildParam name = getBuildParamOrDefault name ""
       let tryGetBuildParam = Option.ofString << getBuildParam
@@ -71,23 +73,23 @@ module FakeTargets =
             | str -> str
         |> fn
 
-      let createVersionTargets (create: string -> (unit -> unit) -> unit) (getBuildParam: string -> string) (asmInfPaths: string list) =
-        let apply = _iterMap asmInfPaths
+      let createVersionTargets (createTarget: TargetCreator) (getBuildParam: string -> string) (asmInfoPaths: string list) =
+        let apply = _iterMap asmInfoPaths
 
-        create "version:major" <| fun _ -> apply SemVer.incrMajor
-        create "version:minor" <| fun _ -> apply SemVer.incrMinor
-        create "version:patch" <| fun _ -> apply SemVer.incrPatch
+        createTarget "version:major" <| fun _ -> apply SemVer.incrMajor
+        createTarget "version:minor" <| fun _ -> apply SemVer.incrMinor
+        createTarget "version:patch" <| fun _ -> apply SemVer.incrPatch
 
-        create "version:pre"   <| fun _ -> apply (_withParamOrPrompt getBuildParam SemVer.setPre "pre")
-        create "version:meta"  <| fun _ -> apply (_withParamOrPrompt getBuildParam SemVer.setMeta "meta")
+        createTarget "version:pre"   <| fun _ -> apply (_withParamOrPrompt getBuildParam SemVer.setPre "pre")
+        createTarget "version:meta"  <| fun _ -> apply (_withParamOrPrompt getBuildParam SemVer.setMeta "meta")
 
-        create "version:current" (fun _ ->
+        createTarget "version:current" (fun _ ->
           let tryRead filePath =
             match AssemblyInfo.tryReadInfoVersion filePath with
             | Some v -> Some (filePath, SemVer.toString v)
             | _ -> None
 
-          asmInfPaths
+          asmInfoPaths
           |> List.choose (fun filePath ->
               match AssemblyInfo.tryReadInfoVersion filePath with
               | Some v -> Some (filePath, SemVer.toString v)

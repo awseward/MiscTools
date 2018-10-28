@@ -11,6 +11,8 @@ open System
 open ASeward.MiscTools
 open ASeward.MiscTools.ActivePatterns
 
+type TargetCreator<'param> = (string -> ('param -> unit) -> unit)
+
 module Versioning =
   open ASeward.MiscTools.Versioning
 
@@ -32,7 +34,7 @@ module Versioning =
         | str -> str
     |> fn
 
-  let createVersionTargets<'a> (create: string -> ('a -> unit) -> unit) (getSingleParamValue: 'a -> string) (asmInfPaths: string list) =
+  let createVersionTargets<'param> (createTarget: TargetCreator<'param>) (getSingleParamValue: 'param -> string) (prefixOpt: string option) (asmInfPaths: string list) =
     let apply fn =
       asmInfPaths
       |> List.iter (fun filePath ->
@@ -41,12 +43,16 @@ module Versioning =
           |> Option.map fn
           |> Option.iter (_write filePath)
       )
+    let pref'd =
+      prefixOpt
+      |> Option.defaultValue "version"
+      |> sprintf "%s:%s"
 
-    create "version:major" <| fun _ -> apply SemVer.incrMajor
-    create "version:minor" <| fun _ -> apply SemVer.incrMinor
-    create "version:patch" <| fun _ -> apply SemVer.incrPatch
+    createTarget (pref'd "major") <| fun _ -> apply SemVer.incrMajor
+    createTarget (pref'd "minor") <| fun _ -> apply SemVer.incrMinor
+    createTarget (pref'd "patch") <| fun _ -> apply SemVer.incrPatch
 
-    create "version:pre" (fun targetParam ->
+    createTarget (pref'd "pre") (fun targetParam ->
       targetParam
       |> getSingleParamValue
       |> function
@@ -55,7 +61,7 @@ module Versioning =
       |> fun pre -> apply (SemVer.setPre pre)
     )
 
-    create "version:meta" (fun targetParam ->
+    createTarget (pref'd "meta") (fun targetParam ->
       targetParam
       |> getSingleParamValue
       |> function
